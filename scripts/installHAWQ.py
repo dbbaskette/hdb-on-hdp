@@ -25,6 +25,7 @@ def installHAWQ(hostName,auth):
     print hawqInstall.text
     pxfInstall = requests.put(url+"/PXF",auth=auth,headers=headers,data = pxfPayload )
     print "Pause for Install to Complete"
+# REPLACE THESE PAUSES WITH ACTUAL POLLING
     time.sleep(360)
 
 
@@ -44,6 +45,11 @@ def startHAWQ(hostName,auth):
     pxfStart = requests.put(url + "/PXF", auth=auth, headers=headers, data=pxfPayload)
     print hawqStart.text
     print pxfStart.text
+    print "Pause for Start to Complete"
+    # REPLACE THESE PAUSES WITH ACTUAL POLLING
+
+    time.sleep(360)
+
 
 
 def addServices(hostName,auth):
