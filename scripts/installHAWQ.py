@@ -36,15 +36,16 @@ def startHAWQ(hostName,auth):
     print  "Start HAWQ to complete Install"
     #PUT - d '{"RequestInfo": {"context" :"Starting HAWQ via API"}, "Body": {"ServiceInfo": {"state" : "STARTED"}}}'  "http://localhost:8080/api/v1/clusters/Sandbox/services/HAWQ"
     #PUT -d '{"RequestInfo": {"context" :"Starting PXF via API"}, "Body": {"ServiceInfo": {"state" : "STARTED"}}}'  "http://localhost:8080/api/v1/clusters/Sandbox/services/PXF"
+
+    url = "http://" + hostName + "/api/v1/clusters/Sandbox/services"
     headers = {"X-Requested-By": "HDB Installer"}
 
     hawqPayload = '{"RequestInfo": {"context" :"Starting HAWQ via API"}, "Body": {"ServiceInfo": {"state" : "STARTED"}}}'
     pxfPayload = '{"RequestInfo": {"context" :"Starting PXF via API"}, "Body": {"ServiceInfo": {"state" : "STARTED"}}}'
 
-    url =  "http://localhost:8080/api/v1/clusters/Sandbox/services/"
     hawqStart =  requests.put(url+"/HAWQ",auth=auth,headers=headers,data = hawqPayload )
-    pxfStart = requests.put(url + "/PXF", auth=auth, headers=headers, data=pxfPayload)
     print hawqStart.text
+    pxfStart = requests.put(url + "/PXF", auth=auth, headers=headers, data=pxfPayload)
     print pxfStart.text
     print "Pause for Start to Complete"
     # REPLACE THESE PAUSES WITH ACTUAL POLLING
