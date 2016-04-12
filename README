@@ -1,0 +1,11 @@
+Pivotal HDB on Hortonworks HDP Sandbox
+--------------------------------------
+
+This release only works for the vmware version.
+* Download the VMWARE version of Sandbox 2.4
+* Import into Fusion
+* Boot Sandbox
+* Change root password
+* Note the root password in the packer json file
+* Change path to VMX in packer json
+* Build
