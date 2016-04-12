@@ -1,0 +1,60 @@
+{
+"variables": 
+{
+	"headless": "false",
+	"vm_basename":"HDBonHDP",
+	"hdp_version":"2.4"
+
+},
+"builders": [
+
+{
+  	"type": "vmware-vmx",
+  	"headless": "{{user `headless`}}",
+  	"source_path": "/Users/dbaskette/Git-Repo/hdb-on-hdp/Hortonworks_sanbox_with_hdp_2_4_vmware.vmwarevm/Hortonworks_sanbox_with_hdp_2_4_vmware.vmx",
+  	"vm_name": "hdbonhdp",
+  	"ssh_username": "root",
+  	"ssh_password": "hawq2016",
+  	"ssh_pty": "true",
+  	"shutdown_command": "shutdown -P now",
+	"output_directory": "hdbonhdp-{{user `hdp_version`}}",
+	"vmx_data": {
+		"displayname": "hdbonhdp-{{user `hdp_version`}}"
+	}
+}
+],
+"provisioners": [
+ 
+{
+	"type":"shell",
+	"inline":["mkdir -p /tmp/bins /tmp/scripts"]
+},
+{
+	"type": "file",
+	"source": "./bins/",
+	"destination": "/tmp/bins/"
+}
+,
+{
+	"type": "file",
+	"source": "./scripts/",
+	"destination": "/tmp/scripts/"
+},
+{
+	"type": "shell",
+	"scripts": [
+		"./scripts/prepareSandbox.sh"
+
+	]
+}
+],
+  "post-processors": [
+
+{
+  "type": "compress",
+  "output": "{{user `vm_basename`}}-{{user `hdp_version`}}.zip",
+  "compression_level": 9,
+  "keep_input_artifact":true
+}
+  ]
+}

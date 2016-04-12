@@ -1,0 +1,5 @@
+##############
+# HDB PARAMS #
+##############
+vm.overcommit_memory = 2
+vm.overcommit_ratio = 50
