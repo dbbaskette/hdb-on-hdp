@@ -116,7 +116,7 @@ def modifyConfig(hostName,auth):
     # Process Defaults into new Configs - This results in multiple sets that need to be processed.
 
     hawqURL = "http://" + hostName + "/api/v1/stacks/HDP/versions/2.4/services/HAWQ/configurations?fields=*"
-    pxfURL = "http://" + hostName + "/api/v1/stacks/HDP/versions/2.4/services/PXG/configurations?fields=*"
+    pxfURL = "http://" + hostName + "/api/v1/stacks/HDP/versions/2.4/services/PXF/configurations?fields=*"
 
     hawqDefaults = requests.get(hawqURL,auth=auth, headers=headers)
     pxfDefaults = requests.get(pxfURL,auth=auth, headers=headers)
