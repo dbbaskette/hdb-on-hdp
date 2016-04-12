@@ -24,6 +24,7 @@ def installHAWQ(hostName,auth):
     hawqInstall = requests.put(url+"/HAWQ",auth=auth,headers=headers,data = hawqPayload )
     print hawqInstall.text
     pxfInstall = requests.put(url+"/PXF",auth=auth,headers=headers,data = pxfPayload )
+    print pxfInstall.text
     print "Pause for Install to Complete"
 # REPLACE THESE PAUSES WITH ACTUAL POLLING
     time.sleep(360)
@@ -101,6 +102,14 @@ def modifyConfig(hostName,auth):
     payload = '{ "Clusters" : {"desired_config": {"type": "hawq-env", "tag" : "0" }}}'
     emptyConfig = requests.put(hawqURL, auth=auth, headers=headers, data=payload)
 
+    #PUT PXF EMPTY CONFIGS
+
+    payload = '{ "Clusters" : {"desired_config": {"type": "pxf-profiles", "tag" : "0" }}}'
+    emptyConfig = requests.put(hawqURL, auth=auth, headers=headers, data=payload)
+    payload = '{ "Clusters" : {"desired_config": {"type": "pxf-public-classpath", "tag" : "0" }}}'
+    emptyConfig = requests.put(hawqURL, auth=auth, headers=headers, data=payload)
+    payload = '{ "Clusters" : {"desired_config": {"type": "pxf-site", "tag" : "0" }}}'
+    emptyConfig = requests.put(hawqURL, auth=auth, headers=headers, data=payload)
 
 
 
@@ -112,8 +121,6 @@ def modifyConfig(hostName,auth):
     hawqDefaults = requests.get(hawqURL,auth=auth, headers=headers)
     pxfDefaults = requests.get(pxfURL,auth=auth, headers=headers)
 
-#sandbox.hortonworks.com:8050
-# schedulere sandbox.hortonworks.com:8030
 
 
     hawqJSON = json.loads(hawqDefaults.text)
@@ -124,6 +131,7 @@ def modifyConfig(hostName,auth):
     hdfsClient = {}
     yarnClient = {}
     gpCheck = {}
+
     for item in hawqJSON["items"]:
         if item["StackConfigurations"]["type"] in "hawq-site.xml":
             hawqSite[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
@@ -150,15 +158,18 @@ def modifyConfig(hostName,auth):
             gpCheck[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
 
 
+    pxfJSON = json.loads(pxfDefaults.text)
+    pxfProfiles = {}
+    pxfClasspath = {}
+    pxfSite = {}
 
-# CREATE DEFAULT CONFIG
-    # POST -d '{"type": "hawq-site", "tag": "1", "properties" : { "hawq.master.port" : 15432,"hawq.segments.per.node" : 1,"hawq.temp.directory" : "/data/hawq/temp"}}' "http://localhost:8080/api/v1/clusters/Sandbox/configurations"
-    # PUT the config to make it active
-    #  PUT -d '{ "Clusters" : {"desired_config": {"type": "hawq-site", "tag" : "1" }}}'  "http://localhost:8080/api/v1/clusters/Sandbox"
-
-######  THIS DESIRED CONFIG PIECE IS WRONG.  MY PUT SHOULD NOT HAVE ALL THE PROPERTIES
-
-
+    for item in pxfJSON["items"]:
+        if item["StackConfigurations"]["type"] in "pxf-profiles.xml":
+            pxfProfiles[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
+        if item["StackConfigurations"]["type"] in "pxf-public-classpath.xml":
+            pxfClasspath[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
+        if item["StackConfigurations"]["type"] in "pxf-site.xml":
+            pxfSite[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
 
     desired = {}
     config = {}
@@ -240,11 +251,38 @@ def modifyConfig(hostName,auth):
     configBuild = requests.post(configURL, auth=auth, headers=headers, data=json.dumps(config))
     desConfig["Clusters"] = desired
     del config["properties"]
-    print "DESIRED CONFIG"
-    print "SHOULD MATCH PUT -d '{ Clusters : {desired_config: {type: hawq-site, tag : 1 }}}'  http://localhost:8080/api/v1/clusters/Sandbox"
-    print desConfig
     configActivate = requests.put(activateURL, auth=auth, headers=headers, data=json.dumps(desConfig))
 
+    config["properties"] = pxfProfiles
+    config["type"] = "pxf-profiles"
+    config["tag"] = "pxf-updates"
+    desired["desired_config"] = config
+    configURL = "http://" + hostName + "/api/v1/clusters/Sandbox/configurations"
+    configBuild = requests.post(configURL, auth=auth, headers=headers, data=json.dumps(config))
+    desConfig["Clusters"] = desired
+    del config["properties"]
+    configActivate = requests.put(activateURL, auth=auth, headers=headers, data=json.dumps(desConfig))
+
+
+    config["properties"] = pxfClasspath
+    config["type"] = "pxf-public-classpath"
+    config["tag"] = "pxf-updates"
+    desired["desired_config"] = config
+    configURL = "http://" + hostName + "/api/v1/clusters/Sandbox/configurations"
+    configBuild = requests.post(configURL, auth=auth, headers=headers, data=json.dumps(config))
+    desConfig["Clusters"] = desired
+    del config["properties"]
+    configActivate = requests.put(activateURL, auth=auth, headers=headers, data=json.dumps(desConfig))
+
+    config["properties"] = pxfSite
+    config["type"] = "pxf-site"
+    config["tag"] = "pxf-updates"
+    desired["desired_config"] = config
+    configURL = "http://" + hostName + "/api/v1/clusters/Sandbox/configurations"
+    configBuild = requests.post(configURL, auth=auth, headers=headers, data=json.dumps(config))
+    desConfig["Clusters"] = desired
+    del config["properties"]
+    configActivate = requests.put(activateURL, auth=auth, headers=headers, data=json.dumps(desConfig))
 
 
 
