@@ -27,7 +27,7 @@ def installHAWQ(hostName,auth):
     print pxfInstall.text
     print "Pause for Install to Complete"
 # REPLACE THESE PAUSES WITH ACTUAL POLLING
-    time.sleep(360)
+    time.sleep(300)
 
 
 
@@ -50,7 +50,7 @@ def startHAWQ(hostName,auth):
     print "Pause for Start to Complete"
     # REPLACE THESE PAUSES WITH ACTUAL POLLING
 
-    time.sleep(360)
+    time.sleep(300)
 
 
 
@@ -146,6 +146,7 @@ def modifyConfig(hostName,auth):
             hawqSite["hawq_password"] = "gpadmin"
         if item["StackConfigurations"]["type"] in "hawq-sysctl-env.xml":
             hawqSysCtl[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
+            hawqSysCtl["kernel.shmmax"] = 510000000
         if item["StackConfigurations"]["type"] in "hawq-limits-env.xml":
             hawqLimits[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
         if item["StackConfigurations"]["type"] in "hawq-env.xml":
