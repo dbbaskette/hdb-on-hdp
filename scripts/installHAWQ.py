@@ -146,7 +146,7 @@ def modifyConfig(hostName,auth):
             hawqSite["hawq_password"] = "gpadmin"
         if item["StackConfigurations"]["type"] in "hawq-sysctl-env.xml":
             hawqSysCtl[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
-            hawqSysCtl["kernel.shmmax"] = 510000000
+            hawqSysCtl["kernel.shmmax"] = 520000000
         if item["StackConfigurations"]["type"] in "hawq-limits-env.xml":
             hawqLimits[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
         if item["StackConfigurations"]["type"] in "hawq-env.xml":
