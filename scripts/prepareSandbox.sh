@@ -11,7 +11,7 @@ EOF
 buildRepos(){
     cd /tmp/bins
 
-    for fileName in ./*
+    for fileName in ./*.tar.gz
     do
         tar xvfz $fileName
         targetDir=$(tar -tf $fileName | grep -o '^[^/]\+/' | sort -u)
@@ -55,8 +55,44 @@ modifyConfigs(){
 cleanup(){
     dd if=/dev/zero of=/bigemptyfile bs=4096k
     rm -rf /bigemptyfile
-
 }
+
+installMadlib(){
+    cd /tmp/bins
+    chown -R gpadmin: /tmp/bins
+    su gpadmin -l -c "cd /tmp/bins;tar xvfz madlib* --strip=1"
+    su gpadmin -l -c "source /usr/local/hawq/greenplum_path.sh;cd /tmp/bins;gppkg -i madlib*.gppkg"
+    su gpadmin -l -c "source /usr/local/hawq/greenplum_path.sh;cd /tmp/bins;\$GPHOME/madlib/bin/madpack install -s madlib -p hawq -c gpadmin@sandbox.hortonworks.com:10432/template1"
+    # echo "INSTALL PL Extensions"
+    # gppkg -i $PLR_FILE
+    # gppkg -i $PLPERL_FILE
+    # gppkg -i $PLJAVA_FILE
+    # gppkg -i $POSTGIS_FILE
+    # source /usr/local/greenplum-db/greenplum_path.sh
+    # gpstop -r -a
+    # psql -d template1 -f $GPHOME/share/postgresql/contrib/postgis-2.0/postgis.sql
+    # createlang plr -d template1
+    # createlang plperl -d template1
+    # createlang pljava -d template1
+    # psql -d template1 -f $GPHOME/share/postgresql/pljava/install.sql
+    # psql -d gpadmin -f $GPHOME/share/postgresql/contrib/postgis-2.0/postgis.sql
+    # createlang plr -d  gpadmin
+    # createlang plperl -d gpadmin
+    # createlang pljava -d gpadmin
+    # psql -d gpadmin -f $GPHOME/share/postgresql/pljava/install.sql
+}
+
+
+
+installPGCcrypto(){
+    gppkg -i $PGCRYPTO_FILE
+    psql -d template1 -f $GPHOME/share/postgresql/contrib/pgcrypto.sql
+    psql -d gpadmin -f $GPHOME/share/postgresql/contrib/pgcrypto.sql
+    echo "source /home/gpadmin/gp-wlm/gp-wlm_path.sh" >> /home/gpadmin/.bashrc
+}
+
+
+
 
 
 }
@@ -68,7 +104,9 @@ _main() {
 	installPlugin
 	modifyConfigs
 	python /tmp/scripts/installHAWQ.py
+	installMadlib
     cleanup
+
 
 }
 

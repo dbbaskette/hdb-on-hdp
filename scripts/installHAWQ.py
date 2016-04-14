@@ -18,16 +18,29 @@ def installHAWQ(hostName,auth):
     url = "http://" + hostName + "/api/v1/clusters/Sandbox/services"
     headers = {"X-Requested-By": "HDB Installer"}
 
+    print "INSTALLING HAWQ"
     hawqPayload = '{"RequestInfo": {"context" :"Installing HAWQ via API"}, "Body": {"ServiceInfo": {"state" : "INSTALLED"}}}'
-    pxfPayload = '{"RequestInfo": {"context" :"Installing PXF via API"}, "Body": {"ServiceInfo": {"state" : "INSTALLED"}}}'
-
     hawqInstall = requests.put(url+"/HAWQ",auth=auth,headers=headers,data = hawqPayload )
-    print hawqInstall.text
+    installedHAWQ = False
+    while not installedHAWQ:
+        time.sleep(5)
+        response = requests.get(url+"/HAWQ" + "?fields=ServiceInfo/state", auth=auth)
+        status = json.loads(response.text)["ServiceInfo"]["state"]
+        if status in "INSTALLED":
+            installedHAWQ = True
+    print "HAWQ INSTALLED"
+
+    print "INSTALLING PXF"
+    pxfPayload = '{"RequestInfo": {"context" :"Installing PXF via API"}, "Body": {"ServiceInfo": {"state" : "INSTALLED"}}}'
     pxfInstall = requests.put(url+"/PXF",auth=auth,headers=headers,data = pxfPayload )
-    print pxfInstall.text
-    print "Pause for Install to Complete"
-# REPLACE THESE PAUSES WITH ACTUAL POLLING
-    time.sleep(300)
+    installedPXF = False
+    while not installedPXF:
+        time.sleep(5)
+        response = requests.get(url + "/PXF" + "?fields=ServiceInfo/state", auth=auth)
+        status = json.loads(response.text)["ServiceInfo"]["state"]
+        if status in "INSTALLED":
+            installedPXF = True
+    print "PXF INSTALLED"
 
 
 
@@ -40,17 +53,30 @@ def startHAWQ(hostName,auth):
     url = "http://" + hostName + "/api/v1/clusters/Sandbox/services"
     headers = {"X-Requested-By": "HDB Installer"}
 
+    print "STARTING HAWQ"
     hawqPayload = '{"RequestInfo": {"context" :"Starting HAWQ via API"}, "Body": {"ServiceInfo": {"state" : "STARTED"}}}'
-    pxfPayload = '{"RequestInfo": {"context" :"Starting PXF via API"}, "Body": {"ServiceInfo": {"state" : "STARTED"}}}'
-
     hawqStart =  requests.put(url+"/HAWQ",auth=auth,headers=headers,data = hawqPayload )
-    print hawqStart.text
-    pxfStart = requests.put(url + "/PXF", auth=auth, headers=headers, data=pxfPayload)
-    print pxfStart.text
-    print "Pause for Start to Complete"
-    # REPLACE THESE PAUSES WITH ACTUAL POLLING
+    startedHAWQ = False
+    while not startedHAWQ:
+        time.sleep(5)
+        response = requests.get(url + "/HAWQ" + "?fields=ServiceInfo/state", auth=auth)
+        status = json.loads(response.text)["ServiceInfo"]["state"]
+        if status in "STARTED":
+            startedHAWQ = True
+    print "HAWQ STARTED"
 
-    time.sleep(300)
+    print "STARTING PXF"
+    pxfPayload = '{"RequestInfo": {"context" :"Starting PXF via API"}, "Body": {"ServiceInfo": {"state" : "STARTED"}}}'
+    pxfStart = requests.put(url + "/PXF", auth=auth, headers=headers, data=pxfPayload)
+    startedPXF = False
+    while not startedPXF:
+        time.sleep(5)
+        response = requests.get(url + "/PXF" + "?fields=ServiceInfo/state", auth=auth)
+        status = json.loads(response.text)["ServiceInfo"]["state"]
+        if status in "STARTED":
+            startedPXF = True
+    print "PXF STARTED"
+
 
 
 
@@ -144,6 +170,8 @@ def modifyConfig(hostName,auth):
             hawqSite["hawq_rm_yarn_address"] = "sandbox.hortonworks.com:8050"
             hawqSite["hawq_rm_yarn_scheduler_address"] = "sandbox.hortonworks.com:8030"
             hawqSite["hawq_password"] = "gpadmin"
+            hawqSite["hawq_rm_min_resource_perseg"] = 1
+
         if item["StackConfigurations"]["type"] in "hawq-sysctl-env.xml":
             hawqSysCtl[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
             hawqSysCtl["kernel.shmmax"] = 520000000

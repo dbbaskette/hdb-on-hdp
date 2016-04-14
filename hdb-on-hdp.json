@@ -47,14 +47,6 @@
 
 	]
 }
-],
-  "post-processors": [
+	]
 
-{
-  "type": "compress",
-  "output": "{{user `vm_basename`}}-{{user `hdp_version`}}.zip",
-  "compression_level": 9,
-  "keep_input_artifact":true
-}
-  ]
 }
