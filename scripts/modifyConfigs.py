@@ -72,7 +72,6 @@ def modifyYarnSiteConfig(hostName,auth,tag,currentProperties):
 
 
 def getProperties(hostName,auth,fileName,tag):
-    print "GET PROPERTIES"
     url = "http://" + hostName + "/api/v1/clusters/Sandbox/configurations?type="+fileName+"&tag="+tag
     fileInfo = requests.get(url, auth=auth)
     fileJSON = json.loads(fileInfo.text)
@@ -80,16 +79,12 @@ def getProperties(hostName,auth,fileName,tag):
 
 
 def getConfigTag(hostName,auth,fileName):
-    print "GET CONFIG TAG"
     url = "http://" + hostName +"/api/v1/clusters/Sandbox?fields=Clusters/desired_configs/" + fileName
     fileInfo = requests.get(url, auth=auth)
     fileJSON = json.loads(fileInfo.text)
     return fileJSON["Clusters"]["desired_configs"][fileName]["tag"]
 
 def activateConfig(hostName,auth):
-    print "ACTIVATE CONFIG"
-
-
     # STOP HDFS
     print "STOPPING HDFS"
     hdfsURL = "http://" + hostName + "/api/v1/clusters/Sandbox/services/HDFS"
