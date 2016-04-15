@@ -53,6 +53,9 @@ modifyConfigs(){
 }
 
 cleanup(){
+    rm -rf /tmp/bins
+    rm -f /home/gpadmin/gpdb-sandbox-tutorials/faa.tar.gz
+    rm -f /home/gpadmin/gpdb-sandbox-tutorials/faa/*.csv
     dd if=/dev/zero of=/bigemptyfile bs=4096k
     rm -rf /bigemptyfile
 }
@@ -92,6 +95,13 @@ installPGCcrypto(){
 }
 
 
+setupTutorialEnv(){
+    echo "SETTING UP TUTORIAL ENVIROMENT"
+    su gpadmin -l -c "git clone --depth=1 https://github.com/greenplum-db/gpdb-sandbox-tutorials.git"
+    su gpadmin -l -c "cd /home/gpadmin/gpdb-sandbox-tutorials; tar xvfz faa.tar.gz"
+    su gpadmin -l -c "hadoop fs -mkdir -p /hawq-tutorials/data"
+    su gpadmin -l -c "cd /home/gpadmin/gpdb-sandbox-tutorials/faa;hadoop fs -put *.csv /hawq-tutorials/data/."
+}
 
 
 
@@ -105,6 +115,7 @@ _main() {
 	modifyConfigs
 	python /tmp/scripts/installHAWQ.py
 	installMadlib
+	setupTutorialEnv
     cleanup
 
 
