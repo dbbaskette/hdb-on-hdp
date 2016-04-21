@@ -11,10 +11,14 @@ EOF
 buildRepos(){
     cd /tmp/bins
 
+
+    # NEED TO FIX TO ONLY DO PLUGIN AND HDB
+
     for fileName in ./*.tar.gz
     do
         tar xvfz $fileName
         targetDir=$(tar -tf $fileName | grep -o '^[^/]\+/' | sort -u)
+        echo "TARGET=$targetDir"
         ./$targetDir/setup_repo.sh
     done
 
@@ -53,7 +57,7 @@ modifyConfigs(){
 }
 
 cleanup(){
-    rm -rf /tmp/bins
+    rm -rf /tmp/bins /tmp/plugins
     rm -f /home/gpadmin/gpdb-sandbox-tutorials/faa.tar.gz
     rm -f /home/gpadmin/gpdb-sandbox-tutorials/faa/*.csv
     dd if=/dev/zero of=/bigemptyfile bs=4096k
@@ -61,11 +65,12 @@ cleanup(){
 }
 
 installMadlib(){
-    cd /tmp/bins
-    chown -R gpadmin: /tmp/bins
-    su gpadmin -l -c "cd /tmp/bins;tar xvfz madlib* --strip=1"
-    su gpadmin -l -c "source /usr/local/hawq/greenplum_path.sh;cd /tmp/bins;gppkg -i madlib*.gppkg"
-    su gpadmin -l -c "source /usr/local/hawq/greenplum_path.sh;cd /tmp/bins;\$GPHOME/madlib/bin/madpack install -s madlib -p hawq -c gpadmin@sandbox.hortonworks.com:10432/template1"
+    # cd /tmp/plugins
+    chown -R gpadmin: /tmp/plugins
+    su gpadmin -l -c "cd /tmp/plugins;tar xvfz madlib*.gz"
+    su gpadmin -l -c "source /usr/local/hawq/greenplum_path.sh;cd /tmp/plugins;gppkg -i madlib*.gppkg"
+    su gpadmin -l -c "source /usr/local/hawq/greenplum_path.sh;cd /tmp/plugins;\$GPHOME/madlib/bin/madpack install -s madlib -p hawq -c gpadmin@sandbox.hortonworks.com:10432/template1"
+
     # echo "INSTALL PL Extensions"
     # gppkg -i $PLR_FILE
     # gppkg -i $PLPERL_FILE
@@ -96,11 +101,35 @@ installPGCcrypto(){
 
 
 setupTutorialEnv(){
+
+    # ENABLE HCAT PERMANENTLY
+
+    echo "hcatalog_enable = true" >> /data/hawq/master/postgresql.conf
+
+    # This gets the data for the hdb Tutorials
+
     echo "SETTING UP TUTORIAL ENVIROMENT"
-    su gpadmin -l -c "git clone --depth=1 https://github.com/greenplum-db/gpdb-sandbox-tutorials.git"
-    su gpadmin -l -c "cd /home/gpadmin/gpdb-sandbox-tutorials; tar xvfz faa.tar.gz"
-    su gpadmin -l -c "hadoop fs -mkdir -p /hawq-tutorials/data"
-    su gpadmin -l -c "cd /home/gpadmin/gpdb-sandbox-tutorials/faa;hadoop fs -put *.csv /hawq-tutorials/data/."
+    su gpadmin -l -c "git clone --depth=1 https://github.com/dbbaskette/hdb-tutorials.git"
+    su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa/otp;gunzip *.gz"
+    su gpadmin -l -c "hadoop fs -mkdir -p /hdb-tutorials/otp"
+    su gpadmin -l -c "hadoop fs -mkdir -p /hdb-tutorials/csv"
+
+    su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa/csv;hadoop fs -put *.csv /hdb-tutorials/csv/."
+    su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa/otp;hadoop fs -put otp* /hdb-tutorials/otp/."
+    su gpadmin -l -c "rm -rf  /home/gpadmin/hdb-tutorials/faa/otp"
+
+    su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa;chmod +x *.sh;./hive-setup.sh"
+    su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa;hive -f create_hive_load_table.sql"
+    su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa;hive -e 'create table faa.otp as select * from faa.ext_otp;'"
+
+
+
+
+    # Gets the Data for the Horton
+    #su gpadmin -l -c "mkdir hivedata;cd hivedata;wget http://seanlahman.com/files/database/lahman591-csv.zip;unzip *.zip;rm -f *.zip"
+
+
+
 }
 
 
@@ -116,7 +145,7 @@ _main() {
 	python /tmp/scripts/installHAWQ.py
 	installMadlib
 	setupTutorialEnv
-    cleanup
+    #cleanup
 
 
 }

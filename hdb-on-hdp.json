@@ -27,12 +27,17 @@
  
 {
 	"type":"shell",
-	"inline":["mkdir -p /tmp/bins /tmp/scripts"]
+	"inline":["mkdir -p /tmp/bins /tmp/scripts /tmp/plugins"]
 },
 {
 	"type": "file",
 	"source": "./bins/",
 	"destination": "/tmp/bins/"
+},
+	{
+	"type": "file",
+	"source": "./plugins/",
+	"destination": "/tmp/plugins/"
 }
 ,
 {

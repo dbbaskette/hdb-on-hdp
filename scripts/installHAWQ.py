@@ -10,6 +10,7 @@ import time
 
 
 
+
 def installHAWQ(hostName,auth):
 
 #PUT -d '{"RequestInfo": {"context" :"Installing HAWQ via API"}, "Body": {"ServiceInfo": {"state" : "INSTALLED"}}}'  "http://localhost:8080/api/v1/clusters/Sandbox/services/HAWQ"
@@ -45,6 +46,7 @@ def installHAWQ(hostName,auth):
 
 
 
+
 def startHAWQ(hostName,auth):
     print  "Start HAWQ to complete Install"
     #PUT - d '{"RequestInfo": {"context" :"Starting HAWQ via API"}, "Body": {"ServiceInfo": {"state" : "STARTED"}}}'  "http://localhost:8080/api/v1/clusters/Sandbox/services/HAWQ"
@@ -76,6 +78,8 @@ def startHAWQ(hostName,auth):
         if status in "STARTED":
             startedPXF = True
     print "PXF STARTED"
+
+
 
 
 
@@ -193,9 +197,18 @@ def modifyConfig(hostName,auth):
     pxfClasspath = {}
     pxfSite = {}
 
+    #AMBARI FIX 1/2
+
+    with open("/tmp/plugins/pxf-profiles.xml","r") as pxfFile:
+        content = pxfFile.read()
+    # END AMBARI FIX
+
     for item in pxfJSON["items"]:
         if item["StackConfigurations"]["type"] in "pxf-profiles.xml":
             pxfProfiles[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
+            # AMBARI FIX 2/2
+            pxfProfiles["content"]=content
+            # END AMBARI FIX
         if item["StackConfigurations"]["type"] in "pxf-public-classpath.xml":
             pxfClasspath[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
         if item["StackConfigurations"]["type"] in "pxf-site.xml":
@@ -282,6 +295,8 @@ def modifyConfig(hostName,auth):
     desConfig["Clusters"] = desired
     del config["properties"]
     configActivate = requests.put(activateURL, auth=auth, headers=headers, data=json.dumps(desConfig))
+
+
 
     config["properties"] = pxfProfiles
     config["type"] = "pxf-profiles"
