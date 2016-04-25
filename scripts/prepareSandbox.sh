@@ -24,7 +24,7 @@ buildRepos(){
 
 installPlugin(){
     service httpd start
-    yum install -y hawq-plugin
+    yum install -y hdb-ambari-plugin*
     #rm -rf /etc/yum.repos.d/hawq-plugin*.repo
     cd /var/lib/hawq/
     ./add_hdb_repo.py -u admin -p admin
@@ -36,7 +36,7 @@ fixHue(){
         echo Must be root. Bye.
         exit 1
     fi
-    add_paths=$(/bin/ls -d /var/www/html/hawq* /var/www/html/PIVO*)
+    add_paths=$(/bin/ls -d /var/www/html/HDB /var/www/html/HDB-AMBARI-PLUGIN)
     pushd /etc/httpd/conf.d/
     cp hue.conf hue.conf.save
     for p in $add_paths
