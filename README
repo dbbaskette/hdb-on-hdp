@@ -8,4 +8,5 @@ This release only works for the vmware version.
 * Change root password
 * Note the root password in the packer json file
 * Change path to VMX in packer json
+* Put HDB and PLugin Binary in ./bins/
 * Build
