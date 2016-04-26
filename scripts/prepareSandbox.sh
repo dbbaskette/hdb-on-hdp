@@ -57,11 +57,23 @@ modifyConfigs(){
 }
 
 cleanup(){
-    rm -rf /tmp/bins /tmp/plugins
-    rm -f /home/gpadmin/gpdb-sandbox-tutorials/faa.tar.gz
-    rm -f /home/gpadmin/gpdb-sandbox-tutorials/faa/*.csv
+    echo "MANUAL CLEANUP"
+    rm -rf /tmp/* /var/tmp/*
+    rm -f /core.*
+    rm -rf /vagrant
+    rm -rf /var/log/dracut*
+    rm -f /etc/yum.repos.d/HDB*
+    #yum remove -y lucene*
+    yum clean all
+
+
+    hadoop fs -rm -R -skipTrash /tmp/*
+    hadoop fs -rm -R -skipTrash /spark-history/*
+    hadoop fs -expunge
     dd if=/dev/zero of=/bigemptyfile bs=4096k
     rm -rf /bigemptyfile
+    echo "MANUAL CLEANUP COMPLETE"
+
 }
 
 installMadlib(){
@@ -133,6 +145,19 @@ setupTutorialEnv(){
 }
 
 
+moveHiveMetastore(){
+    echo "Moving the Hive Metastore to POSTGRESQL"
+    yum install -y postgresql-jdbc*
+    chmod 644 /usr/share/java/postgresql-jdbc.jar
+    ambari-server setup --jdbc-db=postgres --jdbc-driver=/usr/share/java/postgresql-jdbc.jar
+    su postgres -l -c "psql -c \"create user hive with password 'hive';\""
+    su postgres -l -c "psql -c \"create database hive owner hive;\""
+    echo "host all        hive    0.0.0.0/0       md5" >> /var/lib/pgsql/data/pg_hba.conf
+    echo "local all        hive          md5" >> /var/lib/pgsql/data/pg_hba.conf
+    /etc/init.d/postgresql reload
+
+}
+
 
 }
 _main() {
@@ -144,8 +169,10 @@ _main() {
 	modifyConfigs
 	python /tmp/scripts/installHAWQ.py
 	installMadlib
+	#moveHiveMetastore
+	#python /tmp/scripts/hiveMetastore.py
 	setupTutorialEnv
-    #cleanup
+    cleanup
 
 
 }
