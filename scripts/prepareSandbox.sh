@@ -56,9 +56,17 @@ modifyConfigs(){
 
 }
 
+
+modify_PGHBA(){
+cat >> /etc/rc.d/rc.local <<EOF
+ip=\$(/sbin/ifconfig | perl -e 'while (<>) { if (/inet +addr:((\d+\.){3}\d+)\s+/ and \$1 ne "127.0.0.1") { \$ip = \$1; break; } } print "\$ip\n"; ' )
+echo "host all gpadmin \$ip/32 trust" >> /data/hawq/master/pg_hba.conf
+EOF
+}
+
 cleanup(){
     echo "MANUAL CLEANUP"
-    rm -rf /tmp/* /var/tmp/*
+    rm -rf /tmp/*
     rm -f /core.*
     rm -rf /vagrant
     rm -rf /var/log/dracut*
@@ -172,6 +180,7 @@ _main() {
 	#moveHiveMetastore
 	#python /tmp/scripts/hiveMetastore.py
 	setupTutorialEnv
+	modify_PGHBA
     cleanup
 
 

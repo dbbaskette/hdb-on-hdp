@@ -48,6 +48,7 @@ _main() {
                 echo "$SANDBOX_BASENAME VMX FILE NOT FOUND"
                 convertOVA
                 changeRootPasswordVMWARE
+                "$VMRUN_BIN" -T fusion stop $SANDBOX_BASENAME/$SANDBOX_BASENAME.vmwarevm/$SANDBOX_BASENAME.vmx
             fi
             subVMPath
             packer build -force -only=vmware hdb-on-hdp.json

@@ -83,7 +83,6 @@ def startHAWQ(hostName,auth):
 
 
 
-
 def addServices(hostName,auth):
 #POST -d '{"ServiceInfo":{"service_name":"HAWQ"}}' "http://localhost:8080/api/v1/clusters/Sandbox/services"
 #POST -d '{"ServiceInfo":{"service_name":"PXF"}}' "http://localhost:8080/api/v1/clusters/Sandbox/services"
