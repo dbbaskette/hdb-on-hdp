@@ -2,17 +2,17 @@
 "variables": 
 {
 	"headless": "false",
-	"vm_basename":"HDBonHDP",
+	"vm_basename":"hdbonhdp",
 	"hdp_version":"2.4"
 
 },
 "builders": [
 
-{
+{	"name": "vmware",
   	"type": "vmware-vmx",
   	"headless": "{{user `headless`}}",
-  	"source_path": "/Users/dbaskette/Git-Repo/hdb-on-hdp/Hortonworks_sanbox_with_hdp_2_4_vmware.vmwarevm/Hortonworks_sanbox_with_hdp_2_4_vmware.vmx",
-  	"vm_name": "hdbonhdp",
+  	"source_path": "HDP_2.4_vmware_v3/HDP_2.4_vmware_v3.vmwarevm/HDP_2.4_vmware_v3.vmx",
+  	"vm_name": "hdbonhdp-vmware",
   	"ssh_username": "root",
   	"ssh_password": "hawq2016",
   	"ssh_pty": "true",
@@ -52,6 +52,18 @@
 
 	]
 }
-	]
+	],
+
+  "post-processors": [
+    {
+      	"type": "compress",
+		"compression_level": 9,
+		"keep_input_artifact":true,
+      	"output": "{{user `vm_basename`}}-{{user `hdp_version`}}-{{isotime \"2006010203040506\"}}.zip"
+    }
+  ]
+}
+
+
 
 }
