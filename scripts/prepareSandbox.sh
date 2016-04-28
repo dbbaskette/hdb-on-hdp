@@ -58,10 +58,34 @@ modifyConfigs(){
 
 
 modify_PGHBA(){
+
+#NEED TO MODIFY THIS TO REPLACE THE LINE NOT JUST ADD A NEW ONE.
+
+
 cat >> /etc/rc.d/rc.local <<EOF
 ip=\$(/sbin/ifconfig | perl -e 'while (<>) { if (/inet +addr:((\d+\.){3}\d+)\s+/ and \$1 ne "127.0.0.1") { \$ip = \$1; break; } } print "\$ip\n"; ' )
-echo "host all gpadmin \$ip/32 trust" >> /data/hawq/master/pg_hba.conf
+#Remove HOST LINES
+sed -i "/host/d" /data/hawq/master/pg_hba.conf
+sed -i "/host/d" /data/hawq/segment/pg_hba.conf
+sed -i "/HDB-BUILDER/d" /data/hawq/master/pg_hba.conf
+sed -i "/HDB-BUILDER/d" /data/hawq/segment/pg_hba.conf
+
+#ADD HOST LINES BACK
+echo "# HDB-BUILDER" >> /data/hawq/master/pg_hba.conf
+echo "# HDB-BUILDER" >> /data/hawq/segment/pg_hba.conf
+echo "host      all     gpadmin     127.0.0.1/28    trust" >> /data/hawq/master/pg_hba.conf
+echo "host      all     gpadmin     \$ip/32     trust" >> /data/hawq/master/pg_hba.conf
+echo "host      all     gpadmin     127.0.0.1/28        trust" >> /data/hawq/segment/pg_hba.conf
+echo "host      all     gpadmin     \$ip/32     trust" >> /data/hawq/segment/pg_hba.conf
 EOF
+
+# THIS IS THE GPDB CODE -> should work.
+
+# ADD APPROPRIATE LOCAL IP TO PG_HBA.CONF
+# 	DELETE CURRENT LINE THEN ADD NEW ONE
+#sed -i "/192.168/d" /gpdata/master/gpseg-1/pg_hba.conf
+#sed -i "86i host all gpadmin \$ip/32 trust" /gpdata/master/gpseg-1/pg_hba.conf
+
 }
 
 cleanup(){
