@@ -1,0 +1,70 @@
+{
+"variables": 
+{
+	"headless": "false",
+	"vm_basename":"hdbonhdp",
+	"hdp_version":"2.4"
+
+},
+"builders": [
+
+{	"name": "vmware",
+  	"type": "vmware-vmx",
+  	"headless": "{{user `headless`}}",
+  	"source_path": "HDP_2.4_vmware_v3/HDP_2.4_vmware_v3.vmwarevm/HDP_2.4_vmware_v3.vmx",
+  	"vm_name": "hdbonhdp-vmware",
+  	"ssh_username": "root",
+  	"ssh_password": "hawq2016",
+  	"ssh_pty": "true",
+  	"shutdown_command": "shutdown -P now",
+	"output_directory": "hdbonhdp-{{user `hdp_version`}}",
+	"vmx_data": {
+		"displayname": "hdbonhdp-{{user `hdp_version`}}"
+	}
+}
+],
+"provisioners": [
+ 
+{
+	"type":"shell",
+	"inline":["mkdir -p /tmp/bins /tmp/scripts /tmp/plugins"]
+},
+{
+	"type": "file",
+	"source": "./bins/",
+	"destination": "/tmp/bins/"
+},
+	{
+	"type": "file",
+	"source": "./plugins/",
+	"destination": "/tmp/plugins/"
+}
+,
+{
+	"type": "file",
+	"source": "./scripts/",
+	"destination": "/tmp/scripts/"
+},
+{
+	"type": "shell",
+	"scripts": [
+		"./scripts/prepareSandbox.sh"
+
+	]
+}
+	],
+
+  "post-processors": [
+    {
+      	"type": "compress",
+		"compression_level": 9,
+		"keep_input_artifact":true,
+      	"output": "{{user `vm_basename`}}-{{user `hdp_version`}}-vmware-{{isotime \"2006010203040506\"}}.zip",
+		"only": ["vmware"]
+    }
+  ]
+}
+
+
+
+}
