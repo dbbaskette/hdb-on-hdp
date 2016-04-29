@@ -59,7 +59,7 @@
       	"type": "compress",
 		"compression_level": 9,
 		"keep_input_artifact":true,
-      	"output": "{{user `vm_basename`}}-{{user `hdp_version`}}-vmware-{{isotime \"2006010203040506\"}}.zip",
+      	"output": "{{user `vm_basename`}}-{{user `hdp_version`}}-vmware-{{isotime \"2006010203040506\"}}.tar.gz",
 		"only": ["vmware"]
     }
   ]
