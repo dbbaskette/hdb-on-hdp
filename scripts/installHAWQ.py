@@ -163,6 +163,7 @@ def modifyConfig(hostName,auth):
     gpCheck = {}
 
     for item in hawqJSON["items"]:
+        #print item["StackConfigurations"]["type"]
         if item["StackConfigurations"]["type"] in "hawq-site.xml":
             hawqSite[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
             hawqSite["hawq_master_address_host"] =  "sandbox.hortonworks.com"
@@ -187,7 +188,7 @@ def modifyConfig(hostName,auth):
             hdfsClient[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
         if item["StackConfigurations"]["type"] in "yarn-client.xml":
             yarnClient[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
-        if item["StackConfigurations"]["type"] in "gpcheck-env.xml":
+        if item["StackConfigurations"]["type"] in "hawq-check-env.xml":
             gpCheck[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
 
 
@@ -198,15 +199,15 @@ def modifyConfig(hostName,auth):
 
     #AMBARI FIX 1/2
 
-    with open("/tmp/plugins/pxf-profiles.xml","r") as pxfFile:
-        content = pxfFile.read()
+    #with open("/tmp/plugins/pxf-profiles.xml","r") as pxfFile:
+    #    content = pxfFile.read()
     # END AMBARI FIX
 
     for item in pxfJSON["items"]:
         if item["StackConfigurations"]["type"] in "pxf-profiles.xml":
             pxfProfiles[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
-            # AMBARI FIX 2/2
-            pxfProfiles["content"]=content
+            # AMBARI FIX 2/2  THIS
+            #pxfProfiles["content"]=content
             # END AMBARI FIX
         if item["StackConfigurations"]["type"] in "pxf-public-classpath.xml":
             pxfClasspath[item["StackConfigurations"]["property_name"]] = item["StackConfigurations"]["property_value"]
@@ -285,8 +286,10 @@ def modifyConfig(hostName,auth):
     del config["properties"]
     configActivate = requests.put(activateURL, auth=auth, headers=headers, data=json.dumps(desConfig))
 
+
+
     config["properties"] = gpCheck
-    config["type"] = "gpcheck-env"
+    config["type"] = "hawq-check-env"
     config["tag"] = "hawq-updates"
     desired["desired_config"] = config
     configURL = "http://" + hostName + "/api/v1/clusters/Sandbox/configurations"

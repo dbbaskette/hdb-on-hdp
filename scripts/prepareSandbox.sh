@@ -1,5 +1,24 @@
 #!/usr/bin/env bash
 
+
+upgradeAmbari(){
+    echo "UPGRADE AMBARI"
+    ambari-agent stop
+    ambari-server stop
+    echo "DOWNLOAD AMBARI 2.2.2 REPO FILE"
+    wget -nv http://public-repo-1.hortonworks.com/ambari/centos6/2.x/updates/2.2.2.0/ambari.repo -O /etc/yum.repos.d/ambari.repo
+    yum clean all
+    echo "UPGRADING SERVER AND AGENT"
+    yum upgrade -y ambari-server
+    yum upgrade -y ambari-agent
+    ambari-server upgrade -s
+    ambari-server start
+    ambari-agent start
+
+}
+
+
+
 setAmbariPassword(){
 ambari-admin-password-reset << EOF
 admin
@@ -57,6 +76,7 @@ modifyConfigs(){
 }
 
 
+
 modify_PGHBA(){
 
 #NEED TO MODIFY THIS TO REPLACE THE LINE NOT JUST ADD A NEW ONE.
@@ -73,11 +93,13 @@ sed -i "/HDB-BUILDER/d" /data/hawq/segment/pg_hba.conf
 #ADD HOST LINES BACK
 echo "# HDB-BUILDER" >> /data/hawq/master/pg_hba.conf
 echo "# HDB-BUILDER" >> /data/hawq/segment/pg_hba.conf
+echo "host      all     gpadmin     \$ip/32     trust" >> /data/hawq/master/pg_hba.conf
 echo "host      all     gpadmin     127.0.0.1/28    trust" >> /data/hawq/master/pg_hba.conf
 echo "host      all     gpadmin     \$ip/32     trust" >> /data/hawq/master/pg_hba.conf
 echo "host      all     gpadmin     127.0.0.1/28        trust" >> /data/hawq/segment/pg_hba.conf
 echo "host      all     gpadmin     \$ip/32     trust" >> /data/hawq/segment/pg_hba.conf
 EOF
+
 
 # THIS IS THE GPDB CODE -> should work.
 
@@ -85,6 +107,15 @@ EOF
 # 	DELETE CURRENT LINE THEN ADD NEW ONE
 #sed -i "/192.168/d" /gpdata/master/gpseg-1/pg_hba.conf
 #sed -i "86i host all gpadmin \$ip/32 trust" /gpdata/master/gpseg-1/pg_hba.conf
+
+}
+
+modify_Paths(){
+    echo "source /usr/local/hawq/greenplum_path.sh
+
+    su gpadmin -l -c "echo \"source /usr/local/hawq/greenplum_path.sh\" >> ~/.bashrc"
+    su gpadmin -l -c "echo \"export PGPORT=10432\" >> ~/.bashrc"
+
 
 }
 
@@ -162,8 +193,8 @@ setupTutorialEnv(){
     su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa/otp;hadoop fs -put otp* /hdb-tutorials/otp/."
     su gpadmin -l -c "rm -rf  /home/gpadmin/hdb-tutorials/faa/otp"
 
-    su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa;chmod +x *.sh;./hive-setup.sh"
-    su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa;hive -f create_hive_load_table.sql"
+    su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa;chmod +x *.sh;./hdb_db_setup.sh"
+    su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa;hive -f hdb_create_hive_load_tables.sql"
     su gpadmin -l -c "cd /home/gpadmin/hdb-tutorials/faa;hive -e 'create table faa.otp as select * from faa.ext_otp;'"
 
 
@@ -194,6 +225,7 @@ moveHiveMetastore(){
 }
 _main() {
     sleep 60
+    upgradeAmbari
 	buildRepos
 	fixHue
 	setAmbariPassword
@@ -203,8 +235,9 @@ _main() {
 	installMadlib
 	#moveHiveMetastore
 	#python /tmp/scripts/hiveMetastore.py
-	setupTutorialEnv
 	modify_PGHBA
+	modify_Paths
+	setupTutorialEnv
     cleanup
 
 
